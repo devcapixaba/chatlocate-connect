@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send } from "lucide-react";
+import { Send, X } from "lucide-react";
 
 interface Message {
   id: string;
@@ -35,11 +35,11 @@ export const ChatPanel = ({ recipientName, onClose }: ChatPanelProps) => {
   };
 
   return (
-    <div className="glass-card fixed bottom-4 right-4 w-80 h-96 rounded-lg flex flex-col animate-slide-up">
-      <div className="p-4 border-b flex justify-between items-center">
-        <h3 className="font-semibold">{recipientName}</h3>
+    <div className="fixed bottom-4 right-4 w-80 h-96 rounded-lg flex flex-col bg-[#222222] shadow-xl animate-slide-up">
+      <div className="p-4 border-b border-white/10 flex justify-between items-center">
+        <h3 className="font-semibold text-white">{recipientName}</h3>
         <Button variant="ghost" size="sm" onClick={onClose}>
-          ✕
+          <X className="h-4 w-4" />
         </Button>
       </div>
       
@@ -54,8 +54,8 @@ export const ChatPanel = ({ recipientName, onClose }: ChatPanelProps) => {
             <div
               className={`max-w-[80%] rounded-lg p-2 ${
                 message.sender === "user"
-                  ? "bg-primary text-white"
-                  : "bg-gray-100"
+                  ? "bg-[#403E43] text-white"
+                  : "bg-[#2A2A2A] text-white"
               }`}
             >
               {message.text}
@@ -64,7 +64,7 @@ export const ChatPanel = ({ recipientName, onClose }: ChatPanelProps) => {
         ))}
       </div>
 
-      <div className="p-4 border-t">
+      <div className="p-4 border-t border-white/10">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -76,9 +76,13 @@ export const ChatPanel = ({ recipientName, onClose }: ChatPanelProps) => {
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type a message..."
-            className="flex-1"
+            className="flex-1 bg-[#2A2A2A] border-white/10 text-white placeholder:text-gray-400"
           />
-          <Button type="submit" size="icon" className="bg-primary text-white">
+          <Button 
+            type="submit" 
+            size="icon" 
+            className="bg-[#403E43] hover:bg-[#403E43]/90"
+          >
             <Send className="w-4 h-4" />
           </Button>
         </form>
