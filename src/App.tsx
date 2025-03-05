@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Messages from "./pages/Messages";
+import ChatScreen from "./pages/ChatScreen";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -20,6 +21,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/messages" element={<Messages />} />
+            <Route path="/messages/:id" element={<ChatScreen />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

@@ -1,4 +1,6 @@
 
+import { useNavigate } from "react-router-dom";
+
 interface MessageItemProps {
   message: {
     id: string;
@@ -11,8 +13,21 @@ interface MessageItemProps {
 }
 
 export const MessageItem = ({ message }: MessageItemProps) => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate(`/messages/${message.id}`, { 
+      state: { 
+        messageData: message 
+      } 
+    });
+  };
+
   return (
-    <div className="flex items-center p-4 cursor-pointer hover:bg-[#111111]">
+    <div 
+      className="flex items-center p-4 cursor-pointer hover:bg-[#111111]"
+      onClick={handleClick}
+    >
       <div className="w-14 h-14 rounded-md overflow-hidden mr-3 flex-shrink-0">
         <img
           src={message.avatar}
