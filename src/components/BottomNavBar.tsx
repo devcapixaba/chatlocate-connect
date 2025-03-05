@@ -25,7 +25,7 @@ export const BottomNavBar = ({ activeTab = "explore" }: BottomNavBarProps) => {
       <Link to="/messages" className="flex flex-col items-center">
         <MessageSquare 
           size={26} 
-          className={activeTab === "messages" ? "text-white" : "text-gray-500"} 
+          className={activeTab === "messages" ? "text-yellow-500" : "text-gray-500"} 
         />
       </Link>
       
