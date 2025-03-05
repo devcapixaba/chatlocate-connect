@@ -4,6 +4,7 @@ import { UserCard } from "@/components/UserCard";
 import { ChatPanel } from "@/components/ChatPanel";
 import { Button } from "@/components/ui/button";
 import { MapPin } from "lucide-react";
+import { BottomNavBar } from "@/components/BottomNavBar";
 
 // Dummy data for demonstration
 const nearbyUsers = [
@@ -51,7 +52,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#1A1F2C] p-4">
+    <div className="min-h-screen bg-[#1A1F2C] p-4 pb-20">
       <div className="max-w-4xl mx-auto">
         {!userLocation ? (
           <div className="flex flex-col items-center justify-center min-h-[80vh] text-center space-y-6">
@@ -88,6 +89,7 @@ const Index = () => {
           />
         )}
       </div>
+      <BottomNavBar activeTab="explore" />
     </div>
   );
 };

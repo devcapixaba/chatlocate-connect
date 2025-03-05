@@ -36,9 +36,15 @@
   body {
     @apply bg-[#1A1F2C] text-white;
     font-family: 'Inter', sans-serif;
+    padding-bottom: 4rem; /* Add padding to account for bottom navigation */
   }
 
   .glass-card {
     @apply bg-[#222222]/80 backdrop-blur-sm border border-white/10;
+  }
+  
+  /* Add styles for the bottom navigation */
+  .bottom-nav-container {
+    @apply fixed bottom-0 left-0 right-0 bg-[#222222] border-t border-[#333333] z-50;
   }
 }
