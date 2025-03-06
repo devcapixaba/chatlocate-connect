@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { X, MessageSquare, Send } from "lucide-react";
+import { X, MessageSquare, Send, Cookie } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";

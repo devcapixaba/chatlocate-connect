@@ -9,8 +9,15 @@ const PremiumPlans = () => {
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-black py-4 px-4 flex items-center justify-center border-b border-[#333333]">
+      <div className="sticky top-0 z-10 bg-black py-4 px-4 flex items-center justify-between border-b border-[#333333]">
+        <button 
+          onClick={() => navigate(-1)}
+          className="p-2"
+        >
+          <ArrowLeft size={24} className="text-white" />
+        </button>
         <h1 className="text-xl font-bold">Escolha um plano</h1>
+        <div className="w-8"></div> {/* Spacer for alignment */}
       </div>
 
       {/* Tab Selection */}
