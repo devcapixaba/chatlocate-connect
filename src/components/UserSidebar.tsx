@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { X, Zap, User, Image, Heart, Shield, Settings, ArrowRight, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -12,12 +13,23 @@ interface UserSidebarProps {
 export const UserSidebar = ({ isOpen, onClose, username = "Novin" }: UserSidebarProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedUsername, setEditedUsername] = useState(username);
+  const navigate = useNavigate();
 
   if (!isOpen) return null;
 
   const handleSaveUsername = () => {
     setIsEditing(false);
     // Here you would typically save the username to a database or state
+  };
+
+  const handleEditProfile = () => {
+    onClose();
+    navigate("/profile/edit");
+  };
+
+  const handleViewPremiumPlans = () => {
+    onClose();
+    navigate("/premium");
   };
 
   return (
@@ -104,9 +116,12 @@ export const UserSidebar = ({ isOpen, onClose, username = "Novin" }: UserSidebar
                   <span className="text-gray-400 ml-2">+495</span>
                 </div>
               </div>
-              <div className="bg-white rounded-full p-2">
+              <button 
+                onClick={handleViewPremiumPlans} 
+                className="bg-white rounded-full p-2"
+              >
                 <ArrowRight size={24} className="text-black" />
-              </div>
+              </button>
             </div>
           </div>
           
@@ -123,7 +138,11 @@ export const UserSidebar = ({ isOpen, onClose, username = "Novin" }: UserSidebar
 
         {/* Menu options */}
         <div className="px-4 border-t border-[#333333] pt-4">
-          <Button variant="ghost" className="w-full justify-start text-white py-3 mb-2">
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start text-white py-3 mb-2"
+            onClick={handleEditProfile}
+          >
             <Edit className="mr-3" size={20} />
             <span>Editar perfil</span>
           </Button>

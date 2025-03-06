@@ -8,6 +8,8 @@ import Index from "./pages/Index";
 import Messages from "./pages/Messages";
 import ChatScreen from "./pages/ChatScreen";
 import NotFound from "./pages/NotFound";
+import PremiumPlans from "./pages/PremiumPlans";
+import EditProfile from "./pages/EditProfile";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +24,8 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/messages/:id" element={<ChatScreen />} />
+            <Route path="/premium" element={<PremiumPlans />} />
+            <Route path="/profile/edit" element={<EditProfile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

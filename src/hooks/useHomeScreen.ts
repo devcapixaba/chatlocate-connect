@@ -179,5 +179,6 @@ export const useHomeScreen = () => {
     handleProfileClose,
     toggleSidebar,
     setSidebarOpen,
+    nearbyUsers,
   };
 };

@@ -1,15 +1,16 @@
 
 import { UserCard } from "@/components/UserCard";
-import { User, nearbyUsers } from "@/hooks/useHomeScreen";
+import { User } from "@/hooks/useHomeScreen";
 
 interface UserGridProps {
+  users: User[];
   onUserSelect: (user: User) => void;
 }
 
-export const UserGrid = ({ onUserSelect }: UserGridProps) => {
+export const UserGrid = ({ users, onUserSelect }: UserGridProps) => {
   return (
     <div className="grid grid-cols-3 gap-px mt-px">
-      {nearbyUsers.map((user) => (
+      {users.map((user) => (
         <UserCard
           key={user.id}
           user={user}

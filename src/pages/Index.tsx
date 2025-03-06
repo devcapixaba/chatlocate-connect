@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { ChatPanel } from "@/components/ChatPanel";
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { ProfilePreview } from "@/components/ProfilePreview";
@@ -20,8 +21,20 @@ const Index = () => {
     handleChatClick,
     handleProfileClose,
     toggleSidebar,
-    setSidebarOpen
+    setSidebarOpen,
+    nearbyUsers
   } = useHomeScreen();
+
+  const [showFavorites, setShowFavorites] = useState(false);
+
+  // For demo purposes, let's assume some users are favorites
+  const favoriteUsers = nearbyUsers.filter((user, index) => index % 3 === 0);
+
+  const toggleFavorites = () => {
+    setShowFavorites(!showFavorites);
+  };
+
+  const displayedUsers = showFavorites ? favoriteUsers : nearbyUsers;
 
   return (
     <div className="min-h-screen bg-black pb-20">
@@ -31,7 +44,10 @@ const Index = () => {
         onToggleSidebar={toggleSidebar}
       />
 
-      <UserGrid onUserSelect={handleUserCardClick} />
+      <UserGrid 
+        users={displayedUsers} 
+        onUserSelect={handleUserCardClick} 
+      />
 
       {activeChatUser && (
         <ChatPanel
@@ -53,7 +69,10 @@ const Index = () => {
         onClose={() => setSidebarOpen(false)}
       />
       
-      <BottomNavBar activeTab="explore" />
+      <BottomNavBar 
+        activeTab={showFavorites ? "favorites" : "explore"} 
+        onFavoritesClick={toggleFavorites} 
+      />
       <Toaster />
     </div>
   );
