@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { UserCard } from "@/components/UserCard";
 import { ChatPanel } from "@/components/ChatPanel";
@@ -6,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { User, Search, Eye } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { FilterButton } from "@/components/FilterButton";
+import { ProfilePreview } from "@/components/ProfilePreview";
+import { useNavigate } from "react-router-dom";
 
 // Dummy data for demonstration
 const nearbyUsers = [
@@ -16,14 +17,18 @@ const nearbyUsers = [
     distance: 0.5,
     status: "Looking for friends! 🏃‍♀️",
     online: true,
+    lastOnline: "agora",
+    height: 179,
   },
   {
     id: "2",
-    name: "",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Bob",
-    distance: 1.2,
+    name: "koe",
+    avatar: "public/lovable-uploads/b8e63da0-3bca-46bf-8f21-34a48745e0ae.png",
+    distance: 0.917,
     status: "Coffee enthusiast ☕",
     online: false,
+    lastOnline: "10 horas atrás",
+    height: 179,
   },
   {
     id: "3",
@@ -32,6 +37,8 @@ const nearbyUsers = [
     distance: 2.1,
     status: "New to the area! 👋",
     online: false,
+    lastOnline: "1 dia atrás",
+    height: 179,
   },
   {
     id: "4",
@@ -40,6 +47,8 @@ const nearbyUsers = [
     distance: 3.2,
     status: "Just looking around",
     online: false,
+    lastOnline: "2 dias atrás",
+    height: 179,
   },
   {
     id: "5",
@@ -48,6 +57,8 @@ const nearbyUsers = [
     distance: 1.5,
     status: "Hi there",
     online: false,
+    lastOnline: "3 dias atrás",
+    height: 179,
   },
   {
     id: "6",
@@ -56,6 +67,8 @@ const nearbyUsers = [
     distance: 0.9,
     status: "Hello world",
     online: true,
+    lastOnline: "4 dias atrás",
+    height: 179,
   },
   {
     id: "7",
@@ -64,6 +77,8 @@ const nearbyUsers = [
     distance: 4.3,
     status: "Looking for fun",
     online: true,
+    lastOnline: "5 dias atrás",
+    height: 179,
   },
   {
     id: "8",
@@ -72,6 +87,8 @@ const nearbyUsers = [
     distance: 2.7,
     status: "Music lover",
     online: false,
+    lastOnline: "6 dias atrás",
+    height: 179,
   },
   {
     id: "9",
@@ -80,6 +97,8 @@ const nearbyUsers = [
     distance: 1.8,
     status: "Gym rat",
     online: false,
+    lastOnline: "7 dias atrás",
+    height: 179,
   },
 ];
 
@@ -95,6 +114,8 @@ const Index = () => {
   const [activeChatUser, setActiveChatUser] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<[number, number] | null>([40.7128, -74.0060]);
   const [activeFilter, setActiveFilter] = useState<string>("all");
+  const [selectedUser, setSelectedUser] = useState<typeof nearbyUsers[0] | null>(null);
+  const navigate = useNavigate();
 
   const requestLocation = () => {
     if ("geolocation" in navigator) {
@@ -110,6 +131,21 @@ const Index = () => {
         }
       );
     }
+  };
+
+  const handleUserCardClick = (user: typeof nearbyUsers[0]) => {
+    setSelectedUser(user);
+  };
+
+  const handleChatClick = () => {
+    if (selectedUser) {
+      setActiveChatUser(selectedUser.name);
+      setSelectedUser(null);
+    }
+  };
+
+  const handleProfileClose = () => {
+    setSelectedUser(null);
   };
 
   return (
@@ -157,7 +193,7 @@ const Index = () => {
           <UserCard
             key={user.id}
             user={user}
-            onChat={() => setActiveChatUser(user.name)}
+            onChat={() => handleUserCardClick(user)}
           />
         ))}
       </div>
@@ -166,6 +202,14 @@ const Index = () => {
         <ChatPanel
           recipientName={activeChatUser}
           onClose={() => setActiveChatUser(null)}
+        />
+      )}
+      
+      {selectedUser && (
+        <ProfilePreview 
+          user={selectedUser}
+          onClose={handleProfileClose}
+          onChat={handleChatClick}
         />
       )}
       

@@ -1,11 +1,14 @@
 
 interface UserCardProps {
   user: {
+    id: string;
     name: string;
     avatar: string;
     distance?: number;
     status?: string;
     online?: boolean;
+    lastOnline?: string;
+    height?: number;
   };
   onChat: () => void;
 }
