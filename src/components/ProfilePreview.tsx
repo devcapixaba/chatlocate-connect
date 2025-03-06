@@ -1,7 +1,9 @@
 
-import { X, Ban, Star, MessageSquare, Camera } from "lucide-react";
+import { useState } from "react";
+import { X, Ban, Star, MessageSquare, Camera, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProfilePreviewProps {
   user: {
@@ -19,6 +21,26 @@ interface ProfilePreviewProps {
 }
 
 export const ProfilePreview = ({ user, onClose, onChat }: ProfilePreviewProps) => {
+  const [inputMessage, setInputMessage] = useState("");
+  const { toast } = useToast();
+
+  const handleSendMessage = () => {
+    if (inputMessage.trim()) {
+      toast({
+        title: "Mensagem enviada",
+        description: "Sua mensagem foi enviada com sucesso!",
+        duration: 3000,
+      });
+      setInputMessage("");
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && inputMessage.trim()) {
+      handleSendMessage();
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col">
       {/* Header with time and icons */}
@@ -63,17 +85,31 @@ export const ProfilePreview = ({ user, onClose, onChat }: ProfilePreviewProps) =
         <div className="flex items-center space-x-2 mt-4">
           <div className="flex-1">
             <Input 
-              placeholder="Diga algo..."
+              placeholder="Digite algo..."
               className="bg-[#333333] border-none text-white h-12 rounded-full"
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyDown={handleKeyDown}
             />
           </div>
-          <Button 
-            variant="ghost"
-            size="icon"
-            className="bg-[#333333] text-yellow-500 rounded-full h-12 w-12"
-          >
-            <Camera size={24} />
-          </Button>
+          {inputMessage.trim() ? (
+            <Button 
+              onClick={handleSendMessage}
+              variant="ghost"
+              size="icon"
+              className="bg-[#333333] text-yellow-500 rounded-full h-12 w-12"
+            >
+              <Send size={24} />
+            </Button>
+          ) : (
+            <Button 
+              variant="ghost"
+              size="icon"
+              className="bg-[#333333] text-yellow-500 rounded-full h-12 w-12"
+            >
+              <Camera size={24} />
+            </Button>
+          )}
           <Button 
             onClick={onChat}
             variant="ghost"

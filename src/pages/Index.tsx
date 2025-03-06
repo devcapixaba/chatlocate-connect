@@ -6,9 +6,10 @@ import { User, Search, Eye } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { FilterButton } from "@/components/FilterButton";
 import { ProfilePreview } from "@/components/ProfilePreview";
+import { UserSidebar } from "@/components/UserSidebar";
 import { useNavigate } from "react-router-dom";
+import { Toaster } from "@/components/ui/toaster";
 
-// Dummy data for demonstration
 const nearbyUsers = [
   {
     id: "1",
@@ -115,6 +116,7 @@ const Index = () => {
   const [userLocation, setUserLocation] = useState<[number, number] | null>([40.7128, -74.0060]);
   const [activeFilter, setActiveFilter] = useState<string>("all");
   const [selectedUser, setSelectedUser] = useState<typeof nearbyUsers[0] | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
   const requestLocation = () => {
@@ -148,14 +150,21 @@ const Index = () => {
     setSelectedUser(null);
   };
 
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
   return (
     <div className="min-h-screen bg-black pb-20">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-black py-3 px-4 border-b border-[#333333]">
         <div className="flex items-center justify-between">
-          <div className="w-10 h-10 rounded-full bg-[#333333] flex items-center justify-center">
+          <button 
+            className="w-10 h-10 rounded-full bg-[#333333] flex items-center justify-center"
+            onClick={toggleSidebar}
+          >
             <User size={20} className="text-gray-400" />
-          </div>
+          </button>
           
           <div className="flex-1 mx-4">
             <div className="relative">
@@ -213,7 +222,13 @@ const Index = () => {
         />
       )}
       
+      <UserSidebar 
+        isOpen={sidebarOpen} 
+        onClose={() => setSidebarOpen(false)}
+      />
+      
       <BottomNavBar activeTab="explore" />
+      <Toaster />
     </div>
   );
 };
