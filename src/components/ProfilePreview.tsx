@@ -68,15 +68,15 @@ export const ProfilePreview = ({ user, onClose, onChat }: ProfilePreviewProps) =
         <div className="flex items-center space-x-2 pt-2">
           <div className="relative flex-1">
             <Input
-              placeholder="Digite algo..."
+              placeholder="Diga algo..."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              className="bg-[#333333] border-none text-white pr-12"
+              className="bg-[#333333] border-none text-white pr-12 h-12 rounded-full"
             />
             {message.trim() && (
               <button
                 onClick={handleSendMessage}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                className="absolute right-4 top-1/2 transform -translate-y-1/2"
               >
                 <Send size={20} className="text-yellow-500" />
               </button>
@@ -84,7 +84,7 @@ export const ProfilePreview = ({ user, onClose, onChat }: ProfilePreviewProps) =
           </div>
           
           <Link to={`/messages/${user.id}`} className="p-3 bg-[#333333] rounded-full">
-            <MessageSquare size={22} className="text-white" />
+            <MessageSquare size={22} className="text-yellow-500" />
           </Link>
         </div>
       </div>
