@@ -27,10 +27,10 @@ export interface Filter {
 
 export const filters: Filter[] = [
   { id: "all", icon: "🔍", label: "", active: true },
-  { id: "age", icon: "", label: "Age", active: false },
-  { id: "fresh", icon: "", label: "Fresh", active: false },
-  { id: "online", icon: "", label: "Online", active: false },
-  { id: "position", icon: "", label: "Position", active: false },
+  { id: "nearby", icon: "📍", label: "Nearby", active: false },
+  { id: "online", icon: "🟢", label: "Online", active: false },
+  { id: "age", icon: "🎂", label: "Age", active: false },
+  { id: "height", icon: "📏", label: "Height", active: false },
 ];
 
 export const useHomeScreen = () => {
@@ -43,17 +43,36 @@ export const useHomeScreen = () => {
   const { user } = useAuth();
 
   // Convert Supabase profiles to the User format needed by the UI
-  const nearbyUsers: User[] = users.map((profile: Profile) => ({
+  const allUsers: User[] = users.map((profile: Profile) => ({
     id: profile.id,
     name: profile.name || "",
     avatar: profile.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.name}`,
-    distance: Math.random() * 5, // Random distance for demo
+    distance: profile.latitude && profile.longitude ? 
+      +(Math.sqrt(
+        Math.pow((profile.latitude - (-23.550520)) * 111, 2) + 
+        Math.pow((profile.longitude - (-46.633309)) * 111, 2)
+      ).toFixed(1)) : undefined,
     status: profile.status || "",
     online: profile.online,
     lastOnline: profile.last_online,
     height: profile.height || 170,
   }));
 
+  // Apply filters
+  let nearbyUsers = [...allUsers];
+  
+  if (activeFilter === "online") {
+    nearbyUsers = nearbyUsers.filter(user => user.online);
+  } else if (activeFilter === "nearby") {
+    nearbyUsers = nearbyUsers.sort((a, b) => 
+      (a.distance || 9999) - (b.distance || 9999)
+    );
+  } else if (activeFilter === "height") {
+    nearbyUsers = nearbyUsers.sort((a, b) => 
+      (b.height || 0) - (a.height || 0)
+    );
+  }
+  
   const handleUserCardClick = (user: User) => {
     setSelectedUser(user);
   };

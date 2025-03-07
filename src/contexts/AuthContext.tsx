@@ -3,7 +3,7 @@ import { createContext, useState, useEffect } from 'react';
 import { supabase, Profile } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { fetchProfile, updateUserOnlineStatus } from '@/utils/authUtils';
+import { fetchProfile, updateUserOnlineStatus, getUserLocation, updateUserLocation } from '@/utils/authUtils';
 
 interface AuthContextType {
   user: any | null;
@@ -38,6 +38,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const profileData = await fetchProfile(data.session.user.id);
         if (profileData) {
           setProfile(profileData);
+          
+          // Update user's location when they log in
+          try {
+            const location = await getUserLocation();
+            await updateUserLocation(data.session.user.id, location.latitude, location.longitude);
+            
+            // Update the profile with location data
+            setProfile(prev => prev ? { ...prev, ...location } : null);
+          } catch (error) {
+            console.error('Error updating location:', error);
+          }
         }
       }
       
@@ -54,6 +65,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           const profileData = await fetchProfile(session.user.id);
           if (profileData) {
             setProfile(profileData);
+            
+            // Update user's location when they log in
+            try {
+              const location = await getUserLocation();
+              await updateUserLocation(session.user.id, location.latitude, location.longitude);
+              
+              // Update the profile with location data
+              setProfile(prev => prev ? { ...prev, ...location } : null);
+            } catch (error) {
+              console.error('Error updating location:', error);
+            }
           }
         } else if (event === 'SIGNED_OUT') {
           setUser(null);

@@ -14,6 +14,8 @@ export type Profile = {
   height: number | null;
   online: boolean;
   last_online: string;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 export type Message = {

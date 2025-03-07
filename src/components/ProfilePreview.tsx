@@ -57,8 +57,12 @@ export const ProfilePreview = ({ user, onClose, onChat }: ProfilePreviewProps) =
         </div>
         
         <div className="flex items-center space-x-2 text-gray-400">
-          <span>{user.distance}km</span>
-          <span>•</span>
+          {user.distance !== undefined && (
+            <>
+              <span>{user.distance}km</span>
+              <span>•</span>
+            </>
+          )}
           <span>{user.online ? 'Online agora' : `Online ${user.lastOnline}`}</span>
         </div>
         

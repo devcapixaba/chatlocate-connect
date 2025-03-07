@@ -57,6 +57,8 @@ export type Database = {
           height: number | null
           id: string
           last_online: string | null
+          latitude: number | null
+          longitude: number | null
           name: string | null
           online: boolean | null
           status: string | null
@@ -66,6 +68,8 @@ export type Database = {
           height?: number | null
           id: string
           last_online?: string | null
+          latitude?: number | null
+          longitude?: number | null
           name?: string | null
           online?: boolean | null
           status?: string | null
@@ -75,6 +79,8 @@ export type Database = {
           height?: number | null
           id?: string
           last_online?: string | null
+          latitude?: number | null
+          longitude?: number | null
           name?: string | null
           online?: boolean | null
           status?: string | null
@@ -86,6 +92,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_distance: {
+        Args: {
+          lat1: number
+          lon1: number
+          lat2: number
+          lon2: number
+        }
+        Returns: number
+      }
       get_latest_messages: {
         Args: {
           current_user_id: string
