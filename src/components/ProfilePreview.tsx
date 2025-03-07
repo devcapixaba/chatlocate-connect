@@ -1,11 +1,13 @@
 
 import React, { useState } from "react";
-import { X, MessageSquare, Send, Cookie } from "lucide-react";
+import { X, MessageSquare, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { User } from "@/hooks/useHomeScreen";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ProfilePreviewProps {
   user: User;
@@ -15,15 +17,45 @@ interface ProfilePreviewProps {
 
 export const ProfilePreview = ({ user, onClose, onChat }: ProfilePreviewProps) => {
   const [message, setMessage] = useState("");
+  const navigate = useNavigate();
+  const { user: currentUser } = useAuth();
 
-  const handleSendMessage = () => {
-    if (message.trim()) {
+  const handleSendMessage = async () => {
+    if (!message.trim() || !currentUser) return;
+
+    try {
+      // Insert the message in the database
+      const { error } = await supabase.from('messages').insert([{
+        sender_id: currentUser.id,
+        receiver_id: user.id,
+        content: message,
+        read: false
+      }]);
+
+      if (error) {
+        throw error;
+      }
+
       toast({
         title: "Mensagem enviada",
         description: `Sua mensagem foi enviada para ${user.name}`,
       });
       setMessage("");
+      
+      // Navigate to messages after sending
+      navigate(`/messages/${user.id}`);
+    } catch (error: any) {
+      toast({
+        title: "Erro ao enviar mensagem",
+        description: error.message,
+        variant: "destructive",
+      });
     }
+  };
+
+  const handleMessageClick = () => {
+    navigate(`/messages/${user.id}`);
+    onClose();
   };
 
   return (
@@ -76,6 +108,11 @@ export const ProfilePreview = ({ user, onClose, onChat }: ProfilePreviewProps) =
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               className="bg-[#333333] border-none text-white pr-12 h-12 rounded-full"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && message.trim()) {
+                  handleSendMessage();
+                }
+              }}
             />
             {message.trim() && (
               <button
@@ -87,9 +124,12 @@ export const ProfilePreview = ({ user, onClose, onChat }: ProfilePreviewProps) =
             )}
           </div>
           
-          <Link to={`/messages/${user.id}`} className="p-3 bg-[#333333] rounded-full">
+          <button 
+            onClick={handleMessageClick} 
+            className="p-3 bg-[#333333] rounded-full"
+          >
             <MessageSquare size={22} className="text-yellow-500" />
-          </Link>
+          </button>
         </div>
       </div>
     </div>
