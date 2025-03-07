@@ -1,8 +1,9 @@
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useState, useEffect } from 'react';
 import { supabase, Profile } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { fetchProfile, updateUserOnlineStatus } from '@/utils/authUtils';
 
 interface AuthContextType {
   user: any | null;
@@ -14,7 +15,7 @@ interface AuthContextType {
   updateProfile: (data: Partial<Profile>) => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<any | null>(null);
@@ -34,7 +35,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       if (data?.session) {
         setUser(data.session.user);
-        await fetchProfile(data.session.user.id);
+        const profileData = await fetchProfile(data.session.user.id);
+        if (profileData) {
+          setProfile(profileData);
+        }
       }
       
       setLoading(false);
@@ -47,7 +51,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       async (event, session) => {
         if (event === 'SIGNED_IN' && session) {
           setUser(session.user);
-          await fetchProfile(session.user.id);
+          const profileData = await fetchProfile(session.user.id);
+          if (profileData) {
+            setProfile(profileData);
+          }
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
           setProfile(null);
@@ -60,27 +67,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       authListener.subscription.unsubscribe();
     };
   }, []);
-
-  const fetchProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        console.error('Error fetching profile:', error);
-        return;
-      }
-
-      if (data) {
-        setProfile(data as Profile);
-      }
-    } catch (error) {
-      console.error('Error in fetchProfile:', error);
-    }
-  };
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -101,10 +87,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       // Update online status
       if (data.user) {
-        await supabase
-          .from('profiles')
-          .update({ online: true })
-          .eq('id', data.user.id);
+        await updateUserOnlineStatus(data.user.id, true);
       }
 
       navigate('/');
@@ -177,10 +160,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       // Update online status before signing out
       if (user) {
-        await supabase
-          .from('profiles')
-          .update({ online: false, last_online: new Date().toISOString() })
-          .eq('id', user.id);
+        await updateUserOnlineStatus(user.id, false);
       }
       
       const { error } = await supabase.auth.signOut();
@@ -225,7 +205,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       // Refresh profile data
-      await fetchProfile(user.id);
+      const profileData = await fetchProfile(user.id);
+      if (profileData) {
+        setProfile(profileData);
+      }
       
       toast({
         title: 'Perfil atualizado',
@@ -251,12 +234,4 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 };
