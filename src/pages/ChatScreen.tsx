@@ -1,55 +1,23 @@
 
 import { useState, useRef, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, MoreVertical, Camera, Clock, Send, Mic, Image, Quote } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-
-interface Message {
-  id: string;
-  text: string;
-  sender: "user" | "other";
-  timestamp: string;
-  delivered?: boolean;
-}
+import { useMessages } from "@/hooks/useMessages";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/hooks/useAuth";
 
 const ChatScreen = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { messageData } = location.state || {};
+  const { id } = useParams();
+  const { user } = useAuth();
+  const messageData = location.state?.messageData || {};
   const [inputMessage, setInputMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { messages, loading, sendMessage } = useMessages(id || null);
   
-  // Sample messages based on the design
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      text: "Tu é chegado a beleza em",
-      sender: "other",
-      timestamp: "00:09",
-    },
-    {
-      id: "2",
-      text: "Foi mal a demora aí",
-      sender: "other",
-      timestamp: "00:29",
-    },
-    {
-      id: "3",
-      text: "Po",
-      sender: "user",
-      timestamp: "00:30",
-      delivered: true,
-    },
-    {
-      id: "4",
-      text: "Oi*",
-      sender: "user",
-      timestamp: "00:30",
-      delivered: true,
-    },
-  ]);
-
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -61,16 +29,8 @@ const ChatScreen = () => {
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputMessage.trim()) return;
-
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      text: inputMessage,
-      sender: "user",
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      delivered: true
-    };
-
-    setMessages([...messages, newMessage]);
+    
+    sendMessage(inputMessage);
     setInputMessage("");
   };
 
@@ -78,8 +38,26 @@ const ChatScreen = () => {
     navigate("/messages");
   };
 
-  if (!messageData) {
-    return <div>No message data available</div>;
+  // When user enters a chat, mark their online status
+  useEffect(() => {
+    if (user) {
+      const updateOnlineStatus = async () => {
+        await supabase
+          .from('profiles')
+          .update({ online: true })
+          .eq('id', user.id);
+      };
+      
+      updateOnlineStatus();
+    }
+    
+    return () => {
+      // Cleanup function not required here
+    };
+  }, [user]);
+
+  if (!id) {
+    return <div>No user selected</div>;
   }
 
   return (
@@ -99,7 +77,7 @@ const ChatScreen = () => {
             <div className="w-10 h-10 rounded-md overflow-hidden mr-3">
               <img 
                 src={messageData.avatar} 
-                alt={messageData.name} 
+                alt={messageData.name || "User"} 
                 className="w-full h-full object-cover" 
               />
             </div>
@@ -137,50 +115,57 @@ const ChatScreen = () => {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((msg, index) => {
-          // Check if we need to show a date separator
-          const showDateSeparator = 
-            index === 0 || 
-            index === 2;
-          
-          return (
-            <div key={msg.id}>
-              {showDateSeparator && (
-                <div className="text-center my-6 text-gray-500">
-                  {index === 0 ? "qua., 12 de fev." : "dom., 23 de fev."}
-                </div>
-              )}
-              
-              {/* Expiring photo message */}
-              {index === 0 && (
-                <div className="flex justify-center my-4">
-                  <div className="bg-transparent border border-yellow-500 text-yellow-500 rounded-full py-2 px-4 flex items-center">
-                    <Clock className="mr-2" size={20} />
-                    <span>Foto que expira</span>
+        {loading ? (
+          <div className="flex justify-center py-4">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-yellow-500"></div>
+          </div>
+        ) : messages.length === 0 ? (
+          <div className="text-center py-4 text-gray-500">
+            Nenhuma mensagem ainda. Comece a conversar!
+          </div>
+        ) : (
+          messages.map((msg, index) => {
+            const isUser = msg.sender_id === user?.id;
+            const showDateSeparator = index === 0 || 
+              new Date(msg.created_at).toDateString() !== 
+              new Date(messages[index - 1].created_at).toDateString();
+            
+            const messageDate = new Date(msg.created_at);
+            const formattedDate = new Intl.DateTimeFormat('pt-BR', {
+              weekday: 'short',
+              day: 'numeric',
+              month: 'short'
+            }).format(messageDate);
+            
+            return (
+              <div key={msg.id}>
+                {showDateSeparator && (
+                  <div className="text-center my-6 text-gray-500">
+                    {formattedDate}
                   </div>
-                </div>
-              )}
-              
-              <div className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
-                <div className="max-w-[70%]">
-                  <div className={`rounded-lg px-4 py-2 ${
-                    msg.sender === "user" ? "bg-yellow-500 text-black" : "bg-[#222222] text-white"
-                  }`}>
-                    {msg.text}
-                  </div>
-                  <div className={`text-xs text-gray-500 mt-1 flex items-center ${
-                    msg.sender === "user" ? "justify-end" : "justify-start"
-                  }`}>
-                    {msg.timestamp}
-                    {msg.delivered && msg.sender === "user" && (
-                      <span className="ml-1">Entregue</span>
-                    )}
+                )}
+                
+                <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
+                  <div className="max-w-[70%]">
+                    <div className={`rounded-lg px-4 py-2 ${
+                      isUser ? "bg-yellow-500 text-black" : "bg-[#222222] text-white"
+                    }`}>
+                      {msg.content}
+                    </div>
+                    <div className={`text-xs text-gray-500 mt-1 flex items-center ${
+                      isUser ? "justify-end" : "justify-start"
+                    }`}>
+                      {messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {isUser && msg.read && (
+                        <span className="ml-1">Entregue</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
         <div ref={messagesEndRef} />
       </div>
 
