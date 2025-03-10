@@ -5,21 +5,33 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from '@/hooks/use-toast';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [tab, setTab] = useState('login');
-  const { signIn, signUp, loading } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { signIn, signUp } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
-    if (tab === 'login') {
-      await signIn(email, password);
-    } else {
-      await signUp(email, password, name);
+    try {
+      if (tab === 'login') {
+        await signIn(email, password);
+      } else {
+        await signUp(email, password, name);
+      }
+    } catch (error: any) {
+      toast({
+        title: tab === 'login' ? 'Erro ao fazer login' : 'Erro ao criar conta',
+        description: error.message || 'Ocorreu um erro, tente novamente',
+        variant: 'destructive',
+      });
+      setIsSubmitting(false);
     }
   };
 
@@ -73,9 +85,9 @@ const Auth = () => {
                 <Button 
                   type="submit" 
                   className="w-full bg-yellow-500 hover:bg-yellow-600 text-black"
-                  disabled={loading}
+                  disabled={isSubmitting}
                 >
-                  {loading ? 'Entrando...' : 'Entrar'}
+                  {isSubmitting ? 'Entrando...' : 'Entrar'}
                 </Button>
               </CardFooter>
             </form>
@@ -128,9 +140,9 @@ const Auth = () => {
                 <Button 
                   type="submit" 
                   className="w-full bg-yellow-500 hover:bg-yellow-600 text-black"
-                  disabled={loading}
+                  disabled={isSubmitting}
                 >
-                  {loading ? 'Criando conta...' : 'Criar conta'}
+                  {isSubmitting ? 'Criando conta...' : 'Criar conta'}
                 </Button>
               </CardFooter>
             </form>
