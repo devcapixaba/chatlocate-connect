@@ -10,12 +10,13 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
   
-  // Add some console logging to help debug
+  // Add more detailed console logging to help debug
   useEffect(() => {
     console.log('ProtectedRoute - Auth state:', { user, loading });
   }, [user, loading]);
   
   if (loading) {
+    console.log('ProtectedRoute - Loading state is true, showing loading indicator');
     return (
       <div className="flex items-center justify-center min-h-screen bg-black">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>

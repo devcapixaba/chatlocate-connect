@@ -31,6 +31,8 @@ const Auth = () => {
         description: error.message || 'Ocorreu um erro, tente novamente',
         variant: 'destructive',
       });
+    } finally {
+      // Always reset isSubmitting, regardless of success or failure
       setIsSubmitting(false);
     }
   };

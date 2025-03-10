@@ -1,4 +1,3 @@
-
 import { createContext, useState, useEffect } from 'react';
 import { supabase, Profile } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
@@ -102,10 +101,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             }
           } catch (profileError) {
             console.error('Error fetching profile:', profileError);
+          } finally {
+            // Make sure to set loading to false after sign in is complete
+            setLoading(false);
           }
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
           setProfile(null);
+          setLoading(false);
+        } else if (event === 'TOKEN_REFRESHED') {
+          // Handle token refresh events
+          if (session) {
+            setUser(session.user);
+            setLoading(false);
+          }
+        } else {
+          // For other events, ensure loading is false
+          setLoading(false);
         }
       }
     );
@@ -129,6 +141,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           description: error.message,
           variant: 'destructive',
         });
+        setLoading(false); // Ensure loading is false on error
         return;
       }
 
@@ -144,8 +157,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         description: error.message,
         variant: 'destructive',
       });
-    } finally {
-      setLoading(false);
+      setLoading(false); // Ensure loading is false on error
     }
   };
 
