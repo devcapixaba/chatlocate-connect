@@ -23,65 +23,90 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // Initialize auth and check for existing session
   useEffect(() => {
-    // Check active session
-    const getSession = async () => {
-      const { data, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.error('Error getting session:', error);
-        return;
-      }
-      
-      if (data?.session) {
-        setUser(data.session.user);
-        const profileData = await fetchProfile(data.session.user.id);
-        if (profileData) {
-          setProfile(profileData);
-          
-          // Update user's location when they log in
-          try {
-            const location = await getUserLocation();
-            await updateUserLocation(data.session.user.id, location.latitude, location.longitude);
-            
-            // Update the profile with location data
-            setProfile(prev => prev ? { ...prev, ...location } : null);
-          } catch (error) {
-            console.error('Error updating location:', error);
-          }
+    const initializeAuth = async () => {
+      try {
+        setLoading(true);
+        console.log('Initializing auth and checking for session...');
+        
+        // Get current session
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+          setLoading(false);
+          return;
         }
+        
+        if (data?.session) {
+          console.log('Session found, setting user data');
+          setUser(data.session.user);
+          
+          try {
+            const profileData = await fetchProfile(data.session.user.id);
+            if (profileData) {
+              setProfile(profileData);
+              
+              // Update user's location when they log in
+              try {
+                const location = await getUserLocation();
+                await updateUserLocation(data.session.user.id, location.latitude, location.longitude);
+                
+                // Update the profile with location data
+                setProfile(prev => prev ? { ...prev, ...location } : null);
+              } catch (locationError) {
+                console.error('Error updating location:', locationError);
+              }
+            } else {
+              console.log('No profile found for user', data.session.user.id);
+            }
+          } catch (profileError) {
+            console.error('Error fetching profile:', profileError);
+          }
+        } else {
+          console.log('No session found');
+        }
+      } catch (initError) {
+        console.error('Error during auth initialization:', initError);
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
     };
 
-    getSession();
+    initializeAuth();
 
     // Listen for auth changes
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event);
+        
         if (event === 'SIGNED_IN' && session) {
           setUser(session.user);
-          const profileData = await fetchProfile(session.user.id);
-          if (profileData) {
-            setProfile(profileData);
-            
-            // Update user's location when they log in
-            try {
-              const location = await getUserLocation();
-              await updateUserLocation(session.user.id, location.latitude, location.longitude);
+          
+          try {
+            const profileData = await fetchProfile(session.user.id);
+            if (profileData) {
+              setProfile(profileData);
               
-              // Update the profile with location data
-              setProfile(prev => prev ? { ...prev, ...location } : null);
-            } catch (error) {
-              console.error('Error updating location:', error);
+              // Update user's location when they log in
+              try {
+                const location = await getUserLocation();
+                await updateUserLocation(session.user.id, location.latitude, location.longitude);
+                
+                // Update the profile with location data
+                setProfile(prev => prev ? { ...prev, ...location } : null);
+              } catch (locationError) {
+                console.error('Error updating location:', locationError);
+              }
             }
+          } catch (profileError) {
+            console.error('Error fetching profile:', profileError);
           }
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
           setProfile(null);
         }
-        setLoading(false);
       }
     );
 
