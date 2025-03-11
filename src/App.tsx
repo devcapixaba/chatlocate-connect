@@ -13,6 +13,10 @@ import PremiumPlans from "./pages/PremiumPlans";
 import EditProfile from "./pages/EditProfile";
 import Auth from "./pages/Auth";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Settings from "./pages/Settings";
+import MyAlbums from "./pages/MyAlbums";
+import CreateAlbum from "./pages/CreateAlbum";
+import AlbumView from "./pages/AlbumView";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +35,10 @@ const App = () => (
               <Route path="/messages/:id" element={<ProtectedRoute><ChatScreen /></ProtectedRoute>} />
               <Route path="/premium" element={<ProtectedRoute><PremiumPlans /></ProtectedRoute>} />
               <Route path="/profile/edit" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+              <Route path="/albums" element={<ProtectedRoute><MyAlbums /></ProtectedRoute>} />
+              <Route path="/albums/create" element={<ProtectedRoute><CreateAlbum /></ProtectedRoute>} />
+              <Route path="/albums/:id" element={<ProtectedRoute><AlbumView /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </div>

@@ -15,12 +15,12 @@ export function useMessages(receiverId: string | null) {
     
     try {
       setLoading(true);
+      console.log('Fetching messages between', user.id, 'and', receiverId);
       
       const { data, error } = await supabase
         .from('messages')
         .select('*')
-        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-        .or(`sender_id.eq.${receiverId},receiver_id.eq.${receiverId}`)
+        .or(`and(sender_id.eq.${user.id},receiver_id.eq.${receiverId}),and(sender_id.eq.${receiverId},receiver_id.eq.${user.id})`)
         .order('created_at', { ascending: true });
       
       if (error) {
@@ -28,6 +28,7 @@ export function useMessages(receiverId: string | null) {
         return;
       }
       
+      console.log('Messages fetched:', data);
       setMessages(data as Message[]);
       
       // Mark messages as read
@@ -54,22 +55,34 @@ export function useMessages(receiverId: string | null) {
     if (!user || !receiverId || !content.trim()) return;
     
     try {
+      console.log('Sending message:', {
+        sender_id: user.id,
+        receiver_id: receiverId,
+        content
+      });
+      
       const newMessage = {
         sender_id: user.id,
         receiver_id: receiverId,
         content,
       };
       
-      const { error } = await supabase.from('messages').insert([newMessage]);
+      const { data, error } = await supabase.from('messages').insert([newMessage]).select();
       
       if (error) {
+        console.error('Error sending message:', error);
         toast({
           title: 'Erro ao enviar mensagem',
           description: error.message,
           variant: 'destructive',
         });
+        return;
       }
+      
+      console.log('Message sent successfully:', data);
+      // No need to manually add the message as the subscription will handle it
     } catch (error: any) {
+      console.error('Error in sendMessage:', error);
       toast({
         title: 'Erro ao enviar mensagem',
         description: error.message,
@@ -80,7 +93,7 @@ export function useMessages(receiverId: string | null) {
   
   // Listen for real-time updates
   useEffect(() => {
-    if (!user) return;
+    if (!user || !receiverId) return;
     
     fetchMessages();
     
@@ -92,21 +105,10 @@ export function useMessages(receiverId: string | null) {
           event: '*',
           schema: 'public',
           table: 'messages',
-          filter: `sender_id=eq.${user.id},receiver_id=eq.${receiverId}`,
+          filter: `or(and(sender_id.eq.${user.id},receiver_id.eq.${receiverId}),and(sender_id.eq.${receiverId},receiver_id.eq.${user.id}))`,
         },
-        () => {
-          fetchMessages();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'messages',
-          filter: `sender_id=eq.${receiverId},receiver_id=eq.${user.id}`,
-        },
-        () => {
+        (payload) => {
+          console.log('Real-time update received:', payload);
           fetchMessages();
         }
       )

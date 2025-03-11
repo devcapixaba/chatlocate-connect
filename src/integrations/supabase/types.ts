@@ -9,6 +9,68 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      album_photos: {
+        Row: {
+          album_id: string
+          created_at: string
+          id: string
+          photo_url: string
+          user_id: string
+        }
+        Insert: {
+          album_id: string
+          created_at?: string
+          id?: string
+          photo_url: string
+          user_id: string
+        }
+        Update: {
+          album_id?: string
+          created_at?: string
+          id?: string
+          photo_url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "album_photos_album_id_fkey"
+            columns: ["album_id"]
+            isOneToOne: false
+            referencedRelation: "albums"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      albums: {
+        Row: {
+          cover_image: string | null
+          created_at: string
+          id: string
+          items_count: number | null
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cover_image?: string | null
+          created_at?: string
+          id?: string
+          items_count?: number | null
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cover_image?: string | null
+          created_at?: string
+          id?: string
+          items_count?: number | null
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string
@@ -34,22 +96,7 @@ export type Database = {
           receiver_id?: string
           sender_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "messages_receiver_id_fkey"
-            columns: ["receiver_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "messages_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       profiles: {
         Row: {

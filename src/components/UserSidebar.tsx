@@ -3,6 +3,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, Zap, User, Image, Heart, Shield, Settings, ArrowRight, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "@/hooks/use-toast";
 
 interface UserSidebarProps {
   isOpen: boolean;
@@ -11,15 +14,42 @@ interface UserSidebarProps {
 }
 
 export const UserSidebar = ({ isOpen, onClose, username = "Novin" }: UserSidebarProps) => {
+  const { user, profile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [editedUsername, setEditedUsername] = useState(username);
+  const [editedUsername, setEditedUsername] = useState(profile?.name || username);
+  const [isSaving, setIsSaving] = useState(false);
   const navigate = useNavigate();
 
   if (!isOpen) return null;
 
-  const handleSaveUsername = () => {
-    setIsEditing(false);
-    // Here you would typically save the username to a database or state
+  const handleSaveUsername = async () => {
+    if (!user || !editedUsername.trim()) return;
+    
+    try {
+      setIsSaving(true);
+      
+      const { error } = await supabase
+        .from('profiles')
+        .update({ name: editedUsername })
+        .eq('id', user.id);
+      
+      if (error) throw error;
+      
+      setIsEditing(false);
+      
+      toast({
+        title: "Nome atualizado",
+        description: "Seu nome foi atualizado com sucesso",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro ao atualizar nome",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleEditProfile = () => {
@@ -30,6 +60,16 @@ export const UserSidebar = ({ isOpen, onClose, username = "Novin" }: UserSidebar
   const handleViewPremiumPlans = () => {
     onClose();
     navigate("/premium");
+  };
+  
+  const handleViewAlbums = () => {
+    onClose();
+    navigate("/albums");
+  };
+  
+  const handleViewSettings = () => {
+    onClose();
+    navigate("/settings");
   };
 
   return (
@@ -43,7 +83,15 @@ export const UserSidebar = ({ isOpen, onClose, username = "Novin" }: UserSidebar
 
         {/* Profile section */}
         <div className="px-4 flex flex-col items-center">
-          <div className="w-32 h-32 bg-[#333333] rounded-lg mb-4"></div>
+          <div className="w-32 h-32 bg-[#333333] rounded-lg mb-4 overflow-hidden">
+            {profile?.avatar && (
+              <img 
+                src={profile.avatar} 
+                alt={profile?.name || editedUsername} 
+                className="w-full h-full object-cover"
+              />
+            )}
+          </div>
           
           {isEditing ? (
             <div className="w-full relative mb-6">
@@ -53,17 +101,27 @@ export const UserSidebar = ({ isOpen, onClose, username = "Novin" }: UserSidebar
                 onChange={(e) => setEditedUsername(e.target.value)}
                 className="w-full py-2 px-4 bg-[#333333] text-white text-lg font-medium rounded-full text-center"
                 autoFocus
+                disabled={isSaving}
               />
               <button 
                 onClick={handleSaveUsername}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white"
+                disabled={isSaving}
               >
-                <X size={20} />
+                {isSaving ? (
+                  <div className="animate-spin h-5 w-5 border-t-2 border-b-2 border-white rounded-full"></div>
+                ) : (
+                  <div className="p-1 bg-white rounded-full">
+                    <X size={16} className="text-black" />
+                  </div>
+                )}
               </button>
             </div>
           ) : (
             <div className="w-full relative mb-6">
-              <div className="w-full py-2 px-4 bg-[#333333] text-white text-lg font-medium rounded-full text-center">{editedUsername}</div>
+              <div className="w-full py-2 px-4 bg-[#333333] text-white text-lg font-medium rounded-full text-center">
+                {profile?.name || editedUsername}
+              </div>
               <button 
                 onClick={() => setIsEditing(true)}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white"
@@ -147,7 +205,11 @@ export const UserSidebar = ({ isOpen, onClose, username = "Novin" }: UserSidebar
             <span>Editar perfil</span>
           </Button>
           
-          <Button variant="ghost" className="w-full justify-start text-white py-3 mb-2">
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start text-white py-3 mb-2"
+            onClick={handleViewAlbums}
+          >
             <Image className="mr-3" size={20} />
             <span>Meus álbuns</span>
           </Button>
@@ -162,7 +224,11 @@ export const UserSidebar = ({ isOpen, onClose, username = "Novin" }: UserSidebar
             <span>Centro de segurança e privacidade</span>
           </Button>
           
-          <Button variant="ghost" className="w-full justify-start text-white py-3 mb-2">
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start text-white py-3 mb-2"
+            onClick={handleViewSettings}
+          >
             <Settings className="mr-3" size={20} />
             <span>Configurações</span>
           </Button>

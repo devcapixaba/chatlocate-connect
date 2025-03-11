@@ -17,25 +17,36 @@ interface ProfilePreviewProps {
 
 export const ProfilePreview = ({ user, onClose, onChat }: ProfilePreviewProps) => {
   const [message, setMessage] = useState("");
+  const [sending, setSending] = useState(false);
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
 
   const handleSendMessage = async () => {
     if (!message.trim() || !currentUser) return;
-
+    
     try {
+      setSending(true);
+      console.log("Sending message:", {
+        sender_id: currentUser.id,
+        receiver_id: user.id,
+        content: message,
+      });
+      
       // Insert the message in the database
-      const { error } = await supabase.from('messages').insert([{
+      const { data, error } = await supabase.from('messages').insert([{
         sender_id: currentUser.id,
         receiver_id: user.id,
         content: message,
         read: false
-      }]);
+      }]).select();
 
       if (error) {
+        console.error("Error sending message:", error);
         throw error;
       }
 
+      console.log("Message sent successfully:", data);
+      
       toast({
         title: "Mensagem enviada",
         description: `Sua mensagem foi enviada para ${user.name}`,
@@ -45,11 +56,14 @@ export const ProfilePreview = ({ user, onClose, onChat }: ProfilePreviewProps) =
       // Navigate to messages after sending
       navigate(`/messages/${user.id}`);
     } catch (error: any) {
+      console.error("Error in handleSendMessage:", error);
       toast({
         title: "Erro ao enviar mensagem",
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setSending(false);
     }
   };
 
@@ -113,8 +127,9 @@ export const ProfilePreview = ({ user, onClose, onChat }: ProfilePreviewProps) =
                   handleSendMessage();
                 }
               }}
+              disabled={sending}
             />
-            {message.trim() && (
+            {message.trim() && !sending && (
               <button
                 onClick={handleSendMessage}
                 className="absolute right-4 top-1/2 transform -translate-y-1/2"
@@ -122,11 +137,17 @@ export const ProfilePreview = ({ user, onClose, onChat }: ProfilePreviewProps) =
                 <Send size={20} className="text-yellow-500" />
               </button>
             )}
+            {sending && (
+              <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                <div className="animate-spin h-5 w-5 border-t-2 border-b-2 border-yellow-500 rounded-full"></div>
+              </div>
+            )}
           </div>
           
           <button 
             onClick={handleMessageClick} 
             className="p-3 bg-[#333333] rounded-full"
+            disabled={sending}
           >
             <MessageSquare size={22} className="text-yellow-500" />
           </button>
