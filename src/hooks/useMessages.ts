@@ -11,7 +11,10 @@ export function useMessages(receiverId: string | null) {
   
   // Fetch messages
   const fetchMessages = useCallback(async () => {
-    if (!user || !receiverId) return;
+    if (!user || !receiverId) {
+      setLoading(false);
+      return;
+    }
     
     try {
       setLoading(true);
@@ -93,7 +96,10 @@ export function useMessages(receiverId: string | null) {
   
   // Listen for real-time updates
   useEffect(() => {
-    if (!user || !receiverId) return;
+    if (!user || !receiverId) {
+      setLoading(false);
+      return;
+    }
     
     fetchMessages();
     
