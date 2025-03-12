@@ -68,6 +68,7 @@ export function useMessages(receiverId: string | null) {
         sender_id: user.id,
         receiver_id: receiverId,
         content,
+        read: false
       };
       
       const { data, error } = await supabase.from('messages').insert([newMessage]).select();
@@ -83,7 +84,10 @@ export function useMessages(receiverId: string | null) {
       }
       
       console.log('Message sent successfully:', data);
-      // No need to manually add the message as the subscription will handle it
+      // Add the new message to the messages array without waiting for the subscription
+      if (data && data.length > 0) {
+        setMessages(prevMessages => [...prevMessages, data[0] as Message]);
+      }
     } catch (error: any) {
       console.error('Error in sendMessage:', error);
       toast({

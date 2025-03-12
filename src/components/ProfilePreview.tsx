@@ -51,8 +51,21 @@ export const ProfilePreview = ({ user, onClose, onChat }: ProfilePreviewProps) =
         description: `Sua mensagem foi enviada para ${user.name}`,
       });
       
-      // Navigate to messages after sending
-      navigate(`/messages/${user.id}`);
+      // Close profile preview before navigating
+      onClose();
+      
+      // Navigate to messages after sending and ensure we have a slight delay
+      // to allow for database updates to propagate
+      setTimeout(() => {
+        navigate(`/messages/${user.id}`, { 
+          state: { 
+            messageData: {
+              avatar: user.avatar,
+              name: user.name
+            }
+          }
+        });
+      }, 300);
     } catch (error: any) {
       console.error("Error in handleSendMessage:", error);
       toast({
@@ -66,8 +79,15 @@ export const ProfilePreview = ({ user, onClose, onChat }: ProfilePreviewProps) =
   };
 
   const handleMessageClick = () => {
-    navigate(`/messages/${user.id}`);
     onClose();
+    navigate(`/messages/${user.id}`, { 
+      state: { 
+        messageData: {
+          avatar: user.avatar,
+          name: user.name
+        }
+      }
+    });
   };
 
   return (
