@@ -100,37 +100,79 @@ export type Database = {
       }
       profiles: {
         Row: {
+          age: number | null
           avatar: string | null
+          bio: string | null
+          body_type: string | null
+          ethnicity: string | null
+          facebook: string | null
           height: number | null
           id: string
+          instagram: string | null
           last_online: string | null
           latitude: number | null
           longitude: number | null
           name: string | null
           online: boolean | null
+          photos: string[] | null
+          position: string | null
+          relationship: string | null
+          show_age: boolean | null
+          spotify: string | null
           status: string | null
+          tags: string | null
+          twitter: string | null
+          weight: number | null
         }
         Insert: {
+          age?: number | null
           avatar?: string | null
+          bio?: string | null
+          body_type?: string | null
+          ethnicity?: string | null
+          facebook?: string | null
           height?: number | null
           id: string
+          instagram?: string | null
           last_online?: string | null
           latitude?: number | null
           longitude?: number | null
           name?: string | null
           online?: boolean | null
+          photos?: string[] | null
+          position?: string | null
+          relationship?: string | null
+          show_age?: boolean | null
+          spotify?: string | null
           status?: string | null
+          tags?: string | null
+          twitter?: string | null
+          weight?: number | null
         }
         Update: {
+          age?: number | null
           avatar?: string | null
+          bio?: string | null
+          body_type?: string | null
+          ethnicity?: string | null
+          facebook?: string | null
           height?: number | null
           id?: string
+          instagram?: string | null
           last_online?: string | null
           latitude?: number | null
           longitude?: number | null
           name?: string | null
           online?: boolean | null
+          photos?: string[] | null
+          position?: string | null
+          relationship?: string | null
+          show_age?: boolean | null
+          spotify?: string | null
           status?: string | null
+          tags?: string | null
+          twitter?: string | null
+          weight?: number | null
         }
         Relationships: []
       }

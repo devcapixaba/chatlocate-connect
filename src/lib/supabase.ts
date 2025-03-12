@@ -17,7 +17,7 @@ export type Profile = {
   latitude: number | null;
   longitude: number | null;
   
-  // Novos campos de perfil
+  // Campos de perfil
   bio: string | null;
   tags: string | null;
   show_age: boolean | null;
