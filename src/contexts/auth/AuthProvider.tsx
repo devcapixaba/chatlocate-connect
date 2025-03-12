@@ -1,21 +1,16 @@
 
-import { createContext, useState, useEffect } from 'react';
-import { supabase, Profile } from '@/lib/supabase';
-import { toast } from '@/hooks/use-toast';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchProfile, updateUserOnlineStatus, getUserLocation, updateUserLocation } from '@/utils/authUtils';
-
-interface AuthContextType {
-  user: any | null;
-  profile: Profile | null;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, name: string) => Promise<void>;
-  signOut: () => Promise<void>;
-  loading: boolean;
-  updateProfile: (data: Partial<Profile>) => Promise<void>;
-}
-
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+import { toast } from '@/hooks/use-toast';
+import { supabase, Profile } from '@/lib/supabase';
+import { AuthContext, AuthContextType } from './AuthContext';
+import { 
+  fetchUserProfile, 
+  updateUserOnlineStatus, 
+  updateUserProfileData,
+  createInitialProfile,
+  updateLocationOnLogin
+} from '@/services/authService';
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<any | null>(null);
@@ -44,14 +39,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setUser(data.session.user);
           
           try {
-            const profileData = await fetchProfile(data.session.user.id);
+            const profileData = await fetchUserProfile(data.session.user.id);
             if (profileData) {
               setProfile(profileData);
               
               // Update user's location when they log in
               try {
-                const location = await getUserLocation();
-                await updateUserLocation(data.session.user.id, location.latitude, location.longitude);
+                const location = await updateLocationOnLogin(data.session.user.id);
                 
                 // Update the profile with location data
                 setProfile(prev => prev ? { ...prev, ...location } : null);
@@ -85,14 +79,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setUser(session.user);
           
           try {
-            const profileData = await fetchProfile(session.user.id);
+            const profileData = await fetchUserProfile(session.user.id);
             if (profileData) {
               setProfile(profileData);
               
               // Update user's location when they log in
               try {
-                const location = await getUserLocation();
-                await updateUserLocation(session.user.id, location.latitude, location.longitude);
+                const location = await updateLocationOnLogin(session.user.id);
                 
                 // Update the profile with location data
                 setProfile(prev => prev ? { ...prev, ...location } : null);
@@ -181,20 +174,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (data.user) {
         // Create initial profile
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([
-            {
-              id: data.user.id,
-              name,
-              avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`,
-              online: true,
-            },
-          ]);
-
-        if (profileError) {
-          console.error('Error creating profile:', profileError);
-        }
+        await createInitialProfile(data.user.id, name);
       }
 
       toast({
@@ -253,25 +233,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Log what we're updating
       console.log("Updating profile with data:", data);
 
-      const { error } = await supabase
-        .from('profiles')
-        .update(data)
-        .eq('id', user.id);
-
-      if (error) {
-        console.error("Error updating profile:", error);
-        toast({
-          title: 'Erro ao atualizar perfil',
-          description: error.message,
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      // Refresh profile data
-      const profileData = await fetchProfile(user.id);
-      if (profileData) {
-        setProfile(profileData);
+      const updatedProfile = await updateUserProfileData(user.id, data);
+      if (updatedProfile) {
+        setProfile(updatedProfile);
       }
       
       toast({
@@ -288,7 +252,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const value = {
+  const value: AuthContextType = {
     user,
     profile,
     signIn,
