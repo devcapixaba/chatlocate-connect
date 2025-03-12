@@ -1,3 +1,4 @@
+
 import { createContext, useState, useEffect } from 'react';
 import { supabase, Profile } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
@@ -249,12 +250,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       if (!user) return;
 
+      // Log what we're updating
+      console.log("Updating profile with data:", data);
+
       const { error } = await supabase
         .from('profiles')
         .update(data)
         .eq('id', user.id);
 
       if (error) {
+        console.error("Error updating profile:", error);
         toast({
           title: 'Erro ao atualizar perfil',
           description: error.message,
@@ -274,6 +279,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         description: 'Suas informações foram atualizadas com sucesso.',
       });
     } catch (error: any) {
+      console.error("Error in updateProfile:", error);
       toast({
         title: 'Erro ao atualizar perfil',
         description: error.message,

@@ -16,6 +16,26 @@ export type Profile = {
   last_online: string;
   latitude: number | null;
   longitude: number | null;
+  
+  // Novos campos de perfil
+  bio: string | null;
+  tags: string | null;
+  show_age: boolean | null;
+  age: number | null;
+  weight: number | null;
+  body_type: string | null;
+  position: string | null;
+  ethnicity: string | null;
+  relationship: string | null;
+  
+  // Redes sociais
+  instagram: string | null;
+  facebook: string | null;
+  twitter: string | null;
+  spotify: string | null;
+  
+  // Fotos
+  photos: string[] | null;
 }
 
 export type Message = {

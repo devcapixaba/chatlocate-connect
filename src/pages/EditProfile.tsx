@@ -1,25 +1,176 @@
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ChevronRight, X, Instagram, Facebook } from "lucide-react";
+import { ArrowLeft, ChevronRight, X, Instagram, Facebook, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 
 const EditProfile = () => {
   const navigate = useNavigate();
-  const [displayName, setDisplayName] = useState("Novin");
-  const [bio, setBio] = useState("");
-  const [tags, setTags] = useState("");
-  const [showAge, setShowAge] = useState(true);
-  const [age, setAge] = useState("18");
-  const [instagram, setInstagram] = useState("");
-  const [facebook, setFacebook] = useState("");
-  const [twitter, setTwitter] = useState("");
-  const [spotify, setSpotify] = useState("");
+  const { profile, updateProfile } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Profile data
+  const [displayName, setDisplayName] = useState(profile?.name || "");
+  const [bio, setBio] = useState(profile?.bio || "");
+  const [tags, setTags] = useState(profile?.tags || "");
+  const [showAge, setShowAge] = useState(profile?.show_age !== false);
+  const [age, setAge] = useState(profile?.age?.toString() || "18");
+  const [height, setHeight] = useState(profile?.height?.toString() || "");
+  const [weight, setWeight] = useState(profile?.weight?.toString() || "");
+  const [bodyType, setBodyType] = useState(profile?.body_type || "");
+  const [position, setPosition] = useState(profile?.position || "");
+  const [ethnicity, setEthnicity] = useState(profile?.ethnicity || "");
+  const [relationship, setRelationship] = useState(profile?.relationship || "");
+  
+  // Social links
+  const [instagram, setInstagram] = useState(profile?.instagram || "");
+  const [facebook, setFacebook] = useState(profile?.facebook || "");
+  const [twitter, setTwitter] = useState(profile?.twitter || "");
+  const [spotify, setSpotify] = useState(profile?.spotify || "");
+  
+  // Photos
+  const [photos, setPhotos] = useState<string[]>(profile?.photos || ["", "", "", "", "", ""]);
+  const [uploading, setUploading] = useState(false);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState<number | null>(null);
+  
+  // Load profile data
+  useEffect(() => {
+    if (profile) {
+      setDisplayName(profile.name || "");
+      setBio(profile.bio || "");
+      setTags(profile.tags || "");
+      setShowAge(profile.show_age !== false);
+      setAge(profile.age?.toString() || "18");
+      setHeight(profile.height?.toString() || "");
+      setWeight(profile.weight?.toString() || "");
+      setBodyType(profile.body_type || "");
+      setPosition(profile.position || "");
+      setEthnicity(profile.ethnicity || "");
+      setRelationship(profile.relationship || "");
+      setInstagram(profile.instagram || "");
+      setFacebook(profile.facebook || "");
+      setTwitter(profile.twitter || "");
+      setSpotify(profile.spotify || "");
+      
+      // Handle photos
+      if (profile.photos && Array.isArray(profile.photos)) {
+        setPhotos(profile.photos);
+      } else {
+        setPhotos(["", "", "", "", "", ""]);
+      }
+    }
+  }, [profile]);
 
   const handleGoBack = () => {
     navigate(-1);
+  };
+  
+  const handlePhotoClick = (index: number) => {
+    setCurrentPhotoIndex(index);
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+  
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (currentPhotoIndex === null || !e.target.files || e.target.files.length === 0) return;
+    
+    const file = e.target.files[0];
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+    const filePath = `${profile?.id}/${fileName}`;
+    
+    try {
+      setUploading(true);
+      
+      // Upload the file to Supabase storage
+      const { data, error } = await supabase.storage
+        .from('profile_photos')
+        .upload(filePath, file);
+      
+      if (error) throw error;
+      
+      // Get the public URL
+      const { data: urlData } = await supabase.storage
+        .from('profile_photos')
+        .getPublicUrl(filePath);
+      
+      if (urlData) {
+        // Update the photos array
+        const updatedPhotos = [...photos];
+        updatedPhotos[currentPhotoIndex] = urlData.publicUrl;
+        setPhotos(updatedPhotos);
+        
+        toast({
+          title: "Foto enviada com sucesso",
+          description: "Sua foto foi adicionada ao perfil",
+        });
+      }
+    } catch (error: any) {
+      console.error("Error uploading photo:", error);
+      toast({
+        title: "Erro ao enviar foto",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+      setCurrentPhotoIndex(null);
+      // Clear the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+  
+  const handleRemovePhoto = (index: number) => {
+    const updatedPhotos = [...photos];
+    updatedPhotos[index] = "";
+    setPhotos(updatedPhotos);
+  };
+  
+  const handleSaveProfile = async () => {
+    try {
+      const profileData = {
+        name: displayName,
+        bio,
+        tags,
+        show_age: showAge,
+        age: parseInt(age || "18"),
+        height: height ? parseInt(height) : null,
+        weight: weight ? parseInt(weight) : null,
+        body_type: bodyType,
+        position,
+        ethnicity,
+        relationship,
+        instagram,
+        facebook,
+        twitter,
+        spotify,
+        photos: photos.filter(photo => photo !== "")
+      };
+      
+      await updateProfile(profileData);
+      
+      toast({
+        title: "Perfil atualizado",
+        description: "Suas informações foram salvas com sucesso",
+      });
+      
+      navigate("/");
+    } catch (error: any) {
+      console.error("Error saving profile:", error);
+      toast({
+        title: "Erro ao salvar perfil",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -30,27 +181,64 @@ const EditProfile = () => {
           <ArrowLeft size={24} />
         </Button>
         <h1 className="text-xl font-bold">Editar perfil</h1>
-        <div className="w-10"></div> {/* Placeholder for spacing */}
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="text-yellow-500"
+          onClick={handleSaveProfile}
+        >
+          Salvar
+        </Button>
       </div>
 
       <div className="pb-20">
         {/* Profile Photos */}
         <div className="p-4">
           <div className="grid grid-cols-3 gap-1">
-            {[1, 2, 3, 4, 5, 6].map((index) => (
-              <div key={index} className="aspect-square bg-[#333333] relative flex items-center justify-center">
-                {index === 1 && (
+            {photos.map((photo, index) => (
+              <div 
+                key={index} 
+                className="aspect-square bg-[#333333] relative flex items-center justify-center cursor-pointer"
+                onClick={() => handlePhotoClick(index)}
+              >
+                {photo ? (
+                  <>
+                    <img 
+                      src={photo} 
+                      alt={`Foto do perfil ${index + 1}`} 
+                      className="w-full h-full object-cover"
+                    />
+                    <button 
+                      className="absolute top-1 right-1 bg-black/70 rounded-full p-1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemovePhoto(index);
+                      }}
+                    >
+                      <X size={16} className="text-white" />
+                    </button>
+                  </>
+                ) : (
                   <div className="text-white">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
-                      <circle cx="9" cy="9" r="2" />
-                      <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
-                    </svg>
+                    <Upload size={24} />
+                  </div>
+                )}
+                
+                {uploading && currentPhotoIndex === index && (
+                  <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+                    <div className="w-6 h-6 border-2 border-t-2 border-yellow-500 rounded-full animate-spin"></div>
                   </div>
                 )}
               </div>
             ))}
           </div>
+          <input 
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept="image/*"
+            onChange={handleFileChange}
+          />
         </div>
 
         {/* Profile Info */}
@@ -58,12 +246,12 @@ const EditProfile = () => {
           <div className="px-4">
             <div className="flex justify-between items-center">
               <label htmlFor="displayName" className="text-white">Nome de exibição</label>
-              <span className="text-gray-500 text-sm">5/15</span>
+              <span className="text-gray-500 text-sm">{displayName.length}/15</span>
             </div>
             <Input
               id="displayName"
               value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
+              onChange={(e) => setDisplayName(e.target.value.slice(0, 15))}
               className="bg-transparent border-none text-white px-0 focus-visible:ring-0"
             />
           </div>
@@ -71,12 +259,12 @@ const EditProfile = () => {
           <div className="px-4">
             <div className="flex justify-between items-center">
               <label htmlFor="bio" className="text-white">Sobre mim</label>
-              <span className="text-gray-500 text-sm">0/255</span>
+              <span className="text-gray-500 text-sm">{bio.length}/255</span>
             </div>
             <Input
               id="bio"
               value={bio}
-              onChange={(e) => setBio(e.target.value)}
+              onChange={(e) => setBio(e.target.value.slice(0, 255))}
               placeholder="Diga às pessoas quem é e o que procura (não o que não procura)"
               className="bg-transparent border-none text-gray-400 px-0 focus-visible:ring-0"
             />
@@ -112,37 +300,71 @@ const EditProfile = () => {
 
             <div className="px-4 py-3 border-t border-[#222222] flex justify-between items-center">
               <span>Idade</span>
-              <span>{age}</span>
+              <Input
+                value={age}
+                onChange={(e) => setAge(e.target.value.replace(/\D/g, ''))}
+                className="bg-transparent border-none text-right text-white px-0 w-auto focus-visible:ring-0"
+              />
             </div>
 
             <div className="px-4 py-3 border-t border-[#222222] flex justify-between items-center">
               <span>Altura</span>
-              <span className="text-gray-400">Adicionar</span>
+              <Input
+                value={height}
+                onChange={(e) => setHeight(e.target.value.replace(/\D/g, ''))}
+                placeholder="cm"
+                className="bg-transparent border-none text-right text-white px-0 w-auto focus-visible:ring-0"
+              />
             </div>
 
             <div className="px-4 py-3 border-t border-[#222222] flex justify-between items-center">
               <span>Peso</span>
-              <span className="text-gray-400">Adicionar</span>
+              <Input
+                value={weight}
+                onChange={(e) => setWeight(e.target.value.replace(/\D/g, ''))}
+                placeholder="kg"
+                className="bg-transparent border-none text-right text-white px-0 w-auto focus-visible:ring-0"
+              />
             </div>
 
             <div className="px-4 py-3 border-t border-[#222222] flex justify-between items-center">
               <span>Porte físico</span>
-              <span className="text-gray-400">Adicionar</span>
+              <Input
+                value={bodyType}
+                onChange={(e) => setBodyType(e.target.value)}
+                placeholder="Adicionar"
+                className="bg-transparent border-none text-right text-gray-400 px-0 w-auto focus-visible:ring-0"
+              />
             </div>
 
             <div className="px-4 py-3 border-t border-[#222222] flex justify-between items-center">
               <span>Posição</span>
-              <span className="text-gray-400">Adicionar</span>
+              <Input
+                value={position}
+                onChange={(e) => setPosition(e.target.value)}
+                placeholder="Adicionar"
+                className="bg-transparent border-none text-right text-gray-400 px-0 w-auto focus-visible:ring-0"
+              />
             </div>
 
             <div className="px-4 py-3 border-t border-[#222222] flex justify-between items-center">
               <span>Etnia</span>
-              <span className="text-gray-400">Adicionar</span>
+              <Input
+                value={ethnicity}
+                onChange={(e) => setEthnicity(e.target.value)}
+                placeholder="Adicionar"
+                className="bg-transparent border-none text-right text-gray-400 px-0 w-auto focus-visible:ring-0"
+              />
             </div>
 
             <div className="px-4 py-3 border-t border-[#222222] flex justify-between items-center">
               <span>Relacionamento atual</span>
-              <span className="text-gray-400">Adicionar</span>
+              <Input
+                value={relationship}
+                onChange={(e) => setRelationship(e.target.value)}
+                placeholder="Adicionar"
+                className="bg-transparent border-none text-right text-gray-400 px-0 w-auto focus-visible:ring-0"
+              />
             </div>
 
             <div className="px-4 py-3 border-t border-[#222222] flex justify-between items-center">
