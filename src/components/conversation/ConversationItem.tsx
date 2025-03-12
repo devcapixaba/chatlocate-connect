@@ -1,8 +1,8 @@
 
 import { useNavigate } from "react-router-dom";
 
-interface MessageItemProps {
-  message: {
+interface ConversationItemProps {
+  conversation: {
     id: string;
     avatar: string;
     name: string;
@@ -12,13 +12,13 @@ interface MessageItemProps {
   };
 }
 
-export const MessageItem = ({ message }: MessageItemProps) => {
+export const ConversationItem = ({ conversation }: ConversationItemProps) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate(`/messages/${message.id}`, { 
+    navigate(`/messages/${conversation.id}`, { 
       state: { 
-        messageData: message 
+        messageData: conversation 
       } 
     });
   };
@@ -30,8 +30,8 @@ export const MessageItem = ({ message }: MessageItemProps) => {
     >
       <div className="w-14 h-14 rounded-md overflow-hidden mr-3 flex-shrink-0">
         <img
-          src={message.avatar}
-          alt={message.name || "User"}
+          src={conversation.avatar}
+          alt={conversation.name || "User"}
           className="w-full h-full object-cover"
         />
       </div>
@@ -39,16 +39,16 @@ export const MessageItem = ({ message }: MessageItemProps) => {
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-center">
           <span className="font-medium text-white">
-            {message.name || "Anonymous"}
+            {conversation.name || "Anonymous"}
           </span>
           <span className="text-gray-500 text-sm">
-            {message.time}
+            {conversation.time}
           </span>
         </div>
         
-        {message.message && (
+        {conversation.message && (
           <p className="text-gray-400 truncate text-sm mt-1">
-            {message.message}
+            {conversation.message}
           </p>
         )}
       </div>

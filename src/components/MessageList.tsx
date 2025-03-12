@@ -1,8 +1,11 @@
 
 import { useState, useEffect } from "react";
-import { MessageItem } from "@/components/MessageItem";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
+import { LoadingSpinner } from "./common/LoadingSpinner";
+import { EmptyConversations } from "./conversation/EmptyConversations";
+import { ConversationList } from "./conversation/ConversationList";
+import { AdBanner } from "./conversation/AdBanner";
 
 interface Conversation {
   id: string;
@@ -10,7 +13,7 @@ interface Conversation {
   name: string;
   message: string;
   time: string;
-  unread: boolean;
+  unread?: boolean;
 }
 
 export const MessageList = () => {
@@ -138,39 +141,17 @@ export const MessageList = () => {
   }, [user]);
 
   if (loading) {
-    return (
-      <div className="flex justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-yellow-500"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (conversations.length === 0) {
-    return (
-      <div className="py-8 text-center text-gray-500">
-        <p>Você ainda não tem conversas</p>
-        <p className="mt-2 text-sm">Comece a conversar com alguém na página principal</p>
-      </div>
-    );
+    return <EmptyConversations />;
   }
 
   return (
-    <div className="divide-y divide-[#333333]">
-      {conversations.map((conversation) => (
-        <MessageItem key={conversation.id} message={conversation} />
-      ))}
-      
-      {/* Advertisement Banner */}
-      <div className="w-full p-4">
-        <div className="relative w-full h-16 bg-[#111111] rounded overflow-hidden">
-          <div className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center text-white text-xs">
-            AD
-          </div>
-          <div className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-yellow-500 text-black font-bold rounded px-3 py-1 text-sm">
-            DOWNLOAD
-          </div>
-        </div>
-      </div>
+    <div>
+      <ConversationList conversations={conversations} />
+      <AdBanner />
     </div>
   );
 };
