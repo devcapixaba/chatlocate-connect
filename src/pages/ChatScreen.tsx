@@ -6,8 +6,8 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { AdBanner } from "@/components/chat/AdBanner";
-import { MessageList } from "@/components/chat/MessageList";
-import { MessageInput } from "@/components/chat/MessageInput";
+import { ChatMessageList } from "@/components/chat/ChatMessageList";
+import { ChatFooter } from "@/components/chat/ChatFooter";
 
 const ChatScreen = () => {
   const location = useLocation();
@@ -43,14 +43,12 @@ const ChatScreen = () => {
 
       <AdBanner />
 
-      <MessageList 
+      <ChatMessageList 
         messages={messages}
         loading={loading}
       />
 
-      <MessageInput 
-        onSendMessage={sendMessage}
-      />
+      <ChatFooter onSendMessage={sendMessage} />
     </div>
   );
 };
