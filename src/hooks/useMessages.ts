@@ -107,8 +107,12 @@ export function useMessages(receiverId: string | null) {
     
     fetchMessages();
     
+    // Create a specific channel name based on the conversation participants
+    // This ensures we listen only to messages related to this conversation
+    const channelName = `messages-${user.id}-${receiverId}`;
+    
     const channel = supabase
-      .channel('messages-channel')
+      .channel(channelName)
       .on(
         'postgres_changes',
         {

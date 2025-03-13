@@ -60,6 +60,7 @@ export const ProfilePreview = ({ user, onClose, onChat }: ProfilePreviewProps) =
         navigate(`/messages/${user.id}`, { 
           state: { 
             messageData: {
+              id: user.id,
               avatar: user.avatar,
               name: user.name
             }
@@ -83,6 +84,7 @@ export const ProfilePreview = ({ user, onClose, onChat }: ProfilePreviewProps) =
     navigate(`/messages/${user.id}`, { 
       state: { 
         messageData: {
+          id: user.id,
           avatar: user.avatar,
           name: user.name
         }

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Send, MessageSquare } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -14,8 +13,13 @@ export const MessageComposer = ({ onSendMessage, onMessageClick, isSending }: Me
 
   const handleSend = async () => {
     if (!message.trim()) return;
-    await onSendMessage(message);
-    setMessage("");
+    try {
+      await onSendMessage(message);
+      setMessage("");
+    } catch (error) {
+      console.error("Error sending message:", error);
+      // Keep the message in the input if sending fails
+    }
   };
 
   return (
@@ -27,7 +31,7 @@ export const MessageComposer = ({ onSendMessage, onMessageClick, isSending }: Me
           onChange={(e) => setMessage(e.target.value)}
           className="bg-[#333333] border-none text-white pr-12 h-12 rounded-full"
           onKeyDown={(e) => {
-            if (e.key === 'Enter' && message.trim()) {
+            if (e.key === 'Enter' && message.trim() && !isSending) {
               handleSend();
             }
           }}
